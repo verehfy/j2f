@@ -1,3 +1,3 @@
 module github.com/codekinson/j2f
 
-go 1.15
+go 1.16

@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"strconv"
 )
 
 func exitGracefully(err error) {
@@ -27,23 +26,30 @@ func check(e error) {
 func visit(current_object map[string]interface{}, base_folder string) {
 	for k, v := range current_object {
 		switch vv := v.(type) {
+
 		case []interface{}:
 			for i, u := range vv {
-				fmt.Println(base_folder+k+"/"+strconv.Itoa(i), "=>", u)
-				write_file(base_folder+k+"/"+strconv.Itoa(i), fmt.Sprint(i), fmt.Sprint(u))
+				indexed_folder := fmt.Sprintf("%s/%s", base_folder, k)
+				write_file(indexed_folder, fmt.Sprint(i), fmt.Sprint(u))
 			}
+
 		case map[string]interface{}:
-			visit(vv, base_folder+k+"/")
+			folder := fmt.Sprintf("%s/%s", base_folder, k)
+			visit(vv, folder)
+
 		default:
-			fmt.Println(base_folder+k, "=>", vv)
 			write_file(base_folder, k, fmt.Sprint(vv))
 		}
 	}
 }
 
 func write_file(file_path string, file_name string, file_value string) {
+	file_path_name := fmt.Sprintf("%s/%s", file_path, file_name)
+	fmt.Println(file_path_name, "=>", file_value)
 	os.MkdirAll(file_path, 0744)
-	err := ioutil.WriteFile(file_path+file_name, []byte(file_value), 0644)
+
+	err := ioutil.WriteFile(file_path_name, []byte(file_value), 0644)
+
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -57,7 +63,7 @@ func main() {
 	if err := json.Unmarshal(jsonval, &dat); err != nil {
 		panic(err)
 	}
-	visit(dat, "artifacts/")
+	visit(dat, "artifacts")
 
 	exitGracefully(err)
 }
